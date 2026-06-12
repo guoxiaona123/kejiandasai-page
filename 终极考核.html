@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>海洋知识抢答器（全屏图片）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        /* 图片铺满整个屏幕，自动拉伸 */
+        body {
+            background: url("https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/3f4bcc5ac6be4c05b9dbd9b13558134f.png~tplv-a9rns2rl98-24:720:720.jpeg?lk3s=8e244e95&rcl=202606120917320CBABFCDA48741C89857&rrcfp=d52e923b&x-expires=1781831852&x-signature=RC2qu8BJJGWBBzl6dUbW7jLQZHs%3D") no-repeat center center;
+            background-size: cover; /* 铺满屏幕，无黑边 */
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        /* 右上角放大版抢答器 */
+        .float-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 360px;
+            z-index: 9999;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            padding: 22px;
+            opacity: 0.98;
+        }
+
+        .top-result {
+            height: 90px;
+            line-height: 90px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            font-size: 42px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .success-show {
+            background: #e6f7ff;
+            color: #0052cc;
+            border: 3px solid #007bff;
+        }
+        .empty-show {
+            background: #f8f9fa;
+            color: #999;
+            font-size: 18px;
+            border: 1px dashed #ccc;
+        }
+
+        .title {
+            font-size: 20px;
+            color: #007bff;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        #stuId {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 12px;
+            outline: none;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        .rob-btn {
+            background: #007bff;
+            color: white;
+        }
+        .reset-btn {
+            background: #6c757d;
+            color: white;
+        }
+        .fullscreen-btn {
+            background: #28a745;
+            color: white;
+        }
+        .btn:disabled {
+            background: #ccc !important;
+            cursor: not-allowed !important;
+        }
+
+        .tip {
+            font-size: 13px;
+            color: #888;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 右上角悬浮抢答器 -->
+    <div class="float-container">
+        <div id="topResult" class="top-result empty-show">等待抢答</div>
+        <div class="title">🚀 课堂抢答器</div>
+        <input type="text" id="stuId" placeholder="输入学号" autocomplete="off">
+        <button class="btn rob-btn" onclick="rob()">立即抢答</button>
+        <button class="btn reset-btn" onclick="reset()">重置</button>
+        <button class="btn fullscreen-btn" onclick="toggleFullscreen()">全屏模式</button>
+        <div class="tip">每人限抢一次 | 重置后恢复抢答权限</div>
+    </div>
+
+<script>
+    let locked = false;
+    let robbedUsers = new Set();
+
+    function rob() {
+        const idInput = document.getElementById("stuId");
+        const id = idInput.value.trim();
+        const topResult = document.getElementById("topResult");
+        const robBtn = document.querySelector(".rob-btn");
+
+        if (!id) {
+            topResult.className = "top-result empty-show";
+            topResult.innerText = "请输入学号";
+            return;
+        }
+        if (robbedUsers.has(id)) {
+            topResult.className = "top-result empty-show";
+            topResult.innerText = "已抢过";
+            return;
+        }
+        if (locked) {
+            topResult.className = "top-result empty-show";
+            topResult.innerText = "已结束";
+            return;
+        }
+
+        locked = true;
+        robbedUsers.add(id);
+        idInput.readOnly = true;
+        robBtn.disabled = true;
+
+        topResult.className = "top-result success-show";
+        topResult.innerText = id;
+    }
+
+    function reset() {
+        locked = false;
+        robbedUsers.clear();
+        document.getElementById("stuId").value = "";
+        document.getElementById("stuId").readOnly = false;
+        document.querySelector(".rob-btn").disabled = false;
+        const topResult = document.getElementById("topResult");
+        topResult.className = "top-result empty-show";
+        topResult.innerText = "等待抢答";
+    }
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {});
+        } else {
+            document.exitFullscreen();
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>🎲 随机抽人答题系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: white;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative; /* 新增：为全屏按钮定位做准备 */
+        }
+
+        /* 新增：全屏按钮样式 */
+        .fullscreen-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(25, 25, 50, 0.3);
+            color: rgba(255, 255, 255, 0); /* 初始文字透明 */
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 9999; /* 确保在最上层 */
+            opacity: 0; /* 初始透明 */
+        }
+
+        .fullscreen-btn:hover {
+            background: rgba(25, 25, 50, 0.8);
+            color: white; /* 悬浮时显示文字 */
+            opacity: 1; /* 悬浮时显示按钮 */
+            box-shadow: 0 0 15px rgba(120, 150, 255, 0.5);
+        }
+
+        /* 粒子背景 */
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
+            background: rgba(25, 25, 50, 0.7);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 50px 30px;
+            box-shadow: 0 0 50px rgba(100, 120, 255, 0.3);
+            border: 1px solid rgba(120, 150, 255, 0.2);
+            position: relative;
+            z-index: 2;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 42px;
+            background: linear-gradient(to right, #7df3ff, #a78dff, #ff96d6);
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 40px;
+            text-shadow: 0 0 20px rgba(130, 150, 255, 0.5);
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 15px rgba(130,150,255,0.4); }
+            to { text-shadow: 0 0 30px rgba(130,150,255,0.7); }
+        }
+
+        /* 抽取展示区 */
+        .show-box {
+            height: 200px;
+            border-radius: 16px;
+            background: rgba(30, 30, 70, 0.6);
+            border: 2px solid rgba(120, 160, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 30px 0;
+            box-shadow: 0 0 30px rgba(100, 120, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .show-box::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(120,160,255,0.1), transparent);
+            transition: 0.5s;
+        }
+
+        .show-box.running::before {
+            left: 100%;
+        }
+
+        .show-name {
+            font-size: 60px;
+            font-weight: bold;
+            background: linear-gradient(to right, #67e3f7, #b993f7, #ff88e6);
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(120, 160, 255, 0.5);
+            transition: all 0.1s;
+        }
+
+        /* 按钮 */
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 40px 0;
+        }
+
+        button {
+            padding: 16px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .start {
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            color: #000;
+        }
+
+        .stop {
+            background: linear-gradient(90deg, #fa709a, #fee140);
+            color: #000;
+        }
+
+        .reset {
+            background: linear-gradient(90deg, #30cfd0, #330867);
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 记录区 */
+        .history-box {
+            margin-top: 30px;
+        }
+
+        .history-title {
+            font-size: 18px;
+            color: #c0cfff;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .history-list {
+            background: rgba(20, 20, 50, 0.5);
+            border-radius: 12px;
+            padding: 18px;
+            min-height: 70px;
+            line-height: 2;
+            color: #e0e8ff;
+            border: 1px solid rgba(120,150,255,0.15);
+        }
+
+        /* 动画 */
+        .name-run {
+            animation: scaleText 0.1s infinite alternate;
+        }
+
+        @keyframes scaleText {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+
+        @media (max-width: 768px) {
+            .title { font-size: 32px; }
+            .show-name { font-size: 42px; }
+            button { padding: 12px 26px; font-size: 16px; }
+            .fullscreen-btn { /* 适配移动端 */
+                padding: 8px 16px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 新增：全屏按钮 -->
+    <button class="fullscreen-btn" id="fullscreenBtn">全屏/退出全屏</button>
+    
+    <div id="particles"></div>
+
+    <div class="container">
+        <h1 class="title">🎲 随机抽人答题系统</h1>
+
+        <div class="show-box" id="showBox">
+            <div class="show-name" id="result">等待抽取</div>
+        </div>
+
+        <div class="btn-group">
+            <button id="start" class="start">开始抽取</button>
+            <button id="stop" class="stop" disabled>停止抽取</button>
+            <button id="reset" class="reset">重置记录</button>
+        </div>
+
+        <div class="history-box">
+            <div class="history-title">📜 抽取记录</div>
+            <div class="history-list" id="history">暂无记录</div>
+        </div>
+    </div>
+
+    <script>
+        // ✅ 全班名单（你给的全部名字）
+        const allNames = [
+            "马美婷","田子轩","张傲雪","李明旺","武锦豪","汤博岩","张晨曦","徐紫涵","安雅馨","杨怡博",
+            "李嘉祥","王羽彤","赵蕴祥","朱一诺","吴泽越","张佳倩","李翔宇","史宇涵","李明炫","王逸凡",
+            "张鑫","赵海洋","刘丽","周玥","崔晴悦","胡琰琪","张浩轩","饶宇晴","杨宇涵","李庚洋",
+            "姚佳宁","李贝晨","韦凯祺","左念慈","李智博","高尚恩","程紫涵","秦嘉乐","马奇辰","赵奥宇"
+        ];
+
+        // DOM
+        const result = document.getElementById("result");
+        const startBtn = document.getElementById("start");
+        const stopBtn = document.getElementById("stop");
+        const resetBtn = document.getElementById("reset");
+        const showBox = document.getElementById("showBox");
+        const historyDom = document.getElementById("history");
+        const fullscreenBtn = document.getElementById("fullscreenBtn"); // 新增：全屏按钮DOM
+
+        let timer = null;
+        let history = [];
+
+        // 新增：全屏切换函数
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                // 进入全屏
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`全屏请求失败: ${err.message}`);
+                });
+            } else {
+                // 退出全屏
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        // 新增：绑定全屏按钮点击事件
+        fullscreenBtn.addEventListener('click', toggleFullScreen);
+
+        // 开始
+        startBtn.onclick = () => {
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            showBox.classList.add("running");
+            result.classList.add("name-run");
+
+            timer = setInterval(() => {
+                const idx = Math.floor(Math.random() * allNames.length);
+                result.innerText = allNames[idx];
+            }, 70);
+        };
+
+        // 停止
+        stopBtn.onclick = () => {
+            clearInterval(timer);
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            showBox.classList.remove("running");
+            result.classList.remove("name-run");
+
+            const name = result.innerText;
+            if (name && name !== "等待抽取") {
+                history.push(name);
+                historyDom.innerText = history.join(" ｜ ");
+            }
+        };
+
+        // 重置
+        resetBtn.onclick = () => {
+            clearInterval(timer);
+            result.innerText = "等待抽取";
+            history = [];
+            historyDom.innerText = "暂无记录";
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            showBox.classList.remove("running");
+            result.classList.remove("name-run");
+        };
+    </script>
+</body>
+</html>

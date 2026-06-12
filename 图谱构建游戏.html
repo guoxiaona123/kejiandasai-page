@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>海洋资源分类互动游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+
+        body {
+            background: #ffffff;
+            padding: 30px 20px;
+        }
+
+        /* 新增全屏按钮样式 */
+        .fullscreen-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            background: transparent;
+            color: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            z-index: 9999;
+        }
+        .fullscreen-btn:hover {
+            background: rgba(66, 153, 225, 0.1);
+            color: #4299e1;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .title-box {
+            text-align: center;
+            margin-bottom: 35px;
+            position: relative;
+        }
+        .main-title {
+            font-size: 26px;
+            color: #1a468b;
+            font-weight: bold;
+            position: relative;
+            z-index: 2;
+            display: inline-block;
+            background: #fff;
+            padding: 0 20px;
+        }
+        .title-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #1a468b;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        .level-one {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        .level-one-item {
+            flex: 1;
+            text-align: center;
+        }
+        .level-one-label {
+            display: inline-block;
+            background: #e8f4ff;
+            color: #1a468b;
+            padding: 6px 16px;
+            border-radius: 4px;
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .material-wrap {
+            border: 1px solid #4299e1;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .level-two-labels {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 8px;
+        }
+        .level-two-label {
+            background: #e8f4ff;
+            color: #1a468b;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .material-drop-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            height: 170px;
+        }
+
+        .single-drop-box {
+            height: 170px;
+        }
+
+        .drop-slot {
+            flex: 1;
+            border: 1px dashed #d0d7e3;
+            border-radius: 6px;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .single-drop-slot {
+            width: 100%;
+            height: 100%;
+            border: 1px dashed #d0d7e3;
+            border-radius: 6px;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .drop-slot.highlight, .single-drop-slot.highlight {
+            border-color: #4299e1;
+            background: #e8f4ff;
+        }
+        .drop-slot.correct, .single-drop-slot.correct {
+            border-color: #48bb78;
+            background: #f0fdf4;
+        }
+        .drop-slot.incorrect, .single-drop-slot.incorrect {
+            border-color: #f56565;
+            background: #fef2f2;
+        }
+
+        .cards-box {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 25px 20px;
+        }
+        .cards-tip {
+            font-size: 15px;
+            color: #64748b;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .cards-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            flex-wrap: wrap;
+            min-height: 150px;
+        }
+
+        .resource-card {
+            width: 120px;
+            cursor: grab;
+            transition: transform 0.2s;
+        }
+        .resource-card:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+        .resource-card.dragging {
+            visibility: hidden;
+        }
+        .card-img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 6px;
+            display: block;
+        }
+        .card-name {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #334155;
+            text-align: center;
+        }
+
+        .btn-group {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .btn {
+            padding: 9px 22px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 0 12px;
+            transition: opacity 0.2s;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .check-btn {
+            background: #4299e1;
+            color: white;
+        }
+        .reset-btn {
+            background: #94a3b8;
+            color: white;
+        }
+
+        .result-tip {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 17px;
+            font-weight: 500;
+            min-height: 22px;
+        }
+
+        .slot-card {
+            width: 100px;
+        }
+        .slot-card .card-img {
+            height: 120px;
+        }
+        .slot-card .card-name {
+            font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .level-one {
+                flex-direction: column;
+                gap: 30px;
+            }
+            .resource-card {
+                width: 100px;
+            }
+            .card-img {
+                height: 120px;
+            }
+            .slot-card {
+                width: 80px;
+            }
+            .slot-card .card-img {
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 新增全屏按钮 -->
+    <button class="fullscreen-btn" id="fullscreenBtn" title="全屏/退出全屏">⛶</button>
+
+    <div class="game-container">
+        <div class="title-box">
+            <div class="title-line"></div>
+            <h1 class="main-title">海洋资源</h1>
+        </div>
+
+        <div class="level-one">
+            <div class="level-one-item">
+                <div class="level-one-label">物质资源</div>
+                <div class="material-wrap">
+                    <div class="level-two-labels">
+                        <div class="level-two-label">矿产资源</div>
+                        <div class="level-two-label">化学资源</div>
+                        <div class="level-two-label">生物资源</div>
+                    </div>
+                    <div class="material-drop-row">
+                        <div class="drop-slot" data-category="矿产资源"></div>
+                        <div class="drop-slot" data-category="化学资源"></div>
+                        <div class="drop-slot" data-category="生物资源"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="level-one-item">
+                <div class="level-one-label">能源资源</div>
+                <div class="single-drop-box">
+                    <div class="single-drop-slot" data-category="能源资源"></div>
+                </div>
+            </div>
+
+            <div class="level-one-item">
+                <div class="level-one-label">空间资源</div>
+                <div class="single-drop-box">
+                    <div class="single-drop-slot" data-category="空间资源"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cards-box">
+            <div class="cards-tip">—请将下列资源拖动到图中对应位置—</div>
+            <div class="cards-wrapper" id="cardContainer">
+                <!-- 生物资源 - 海洋鱼类 -->
+                <div class="resource-card" draggable="true" data-type="生物资源">
+                    <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/cf81714ec7414ac2ac636c26d1a3efe3.png~tplv-a9rns2rl98-24:720:720.jpeg?lk3s=8e244e95&rcl=20260610134419FF5B4D20BB1FE0115C4B&rrcfp=d52e923b&x-expires=1781675059&x-signature=%2FMRM6WMpf90UnZZdFwgEBEjil78%3D" alt="海洋鱼类" class="card-img">
+                    <div class="card-name">海洋鱼类</div>
+                </div>
+
+                <!-- 化学资源 - 海水晒盐 -->
+                <div class="resource-card" draggable="true" data-type="化学资源">
+                    <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/96b500c193cd4943af789ae52124108d.jpg~tplv-a9rns2rl98-24:720:720.jpeg?lk3s=8e244e95&rcl=20260610134705660A8290F64E1ABAC1F1&rrcfp=d52e923b&x-expires=1781675225&x-signature=gFFxux4jctAaaU4miMJsXeYFLlA%3D" alt="海水晒盐" class="card-img">
+                    <div class="card-name">海水晒盐</div>
+                </div>
+
+                <!-- 矿产资源 - 海底石油 -->
+                <div class="resource-card" draggable="true" data-type="矿产资源">
+                    <img src="https://p11-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/e876e9ac7de1488f8b594c905c1e4ed9.jpg~tplv-a9rns2rl98-24:720:720.jpeg?lk3s=8e244e95&rcl=20260610134705660A8290F64E1ABAC1F1&rrcfp=d52e923b&x-expires=1781675225&x-signature=sPEx0T2GUwf0dDzj75qmOy0vgPU%3D" alt="海底石油" class="card-img">
+                    <div class="card-name">海底石油</div>
+                </div>
+
+                <!-- 海洋港口 -->
+                <div class="resource-card" draggable="true" data-type="空间资源">
+                    <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/cfd6c8e87d4c4881814dfaa73384de88.jpg~tplv-a9rns2rl98-24:720:720.jpeg?lk3s=8e244e95&rcl=20260610134705660A8290F64E1ABAC1F1&rrcfp=d52e923b&x-expires=1781675225&x-signature=lo%2BRifzfXQrixdjtXiZKSia6MW4%3D" alt="海洋港口" class="card-img">
+                    <div class="card-name">海洋港口</div>
+                </div>
+
+                <!-- 海风发电 -->
+                <div class="resource-card" draggable="true" data-type="能源资源">
+                    <img src="https://p11-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/0b19e9e612854913952f1003dc150496.png~tplv-a9rns2rl98-24:720:720.jpeg?lk3s=8e244e95&rcl=20260610134705660A8290F64E1ABAC1F1&rrcfp=d52e923b&x-expires=1781675225&x-signature=SPYrn9w8xuHxgM%2B5ndfRctRbBQA%3D" alt="海风发电" class="card-img">
+                    <div class="card-name">海风发电</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn check-btn" onclick="checkAnswer()">检查答案</button>
+            <button class="btn reset-btn" onclick="resetGame()">重新开始</button>
+        </div>
+        <div class="result-tip" id="resultTip"></div>
+    </div>
+
+    <script>
+        const correctMap = {
+            "生物资源": ["海洋鱼类"],
+            "化学资源": ["海水晒盐"],
+            "矿产资源": ["海底石油"],
+            "能源资源": ["海风发电"],
+            "空间资源": ["海洋港口"]
+        };
+
+        let dragTarget = null;
+        let isChecked = false; // 检查状态：未检查可拖动，检查后锁定
+        const cardContainer = document.getElementById('cardContainer');
+
+        // 新增全屏功能
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                // 进入全屏
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`全屏请求失败: ${err.message}`);
+                });
+            } else {
+                // 退出全屏
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initDraggable(document.querySelectorAll('.resource-card'));
+            initDropZones(document.querySelectorAll('.drop-slot, .single-drop-slot, #cardContainer'));
+        });
+
+        // 初始化可拖拽
+        function initDraggable(elements) {
+            elements.forEach(el => {
+                el.addEventListener('dragstart', handleDragStart);
+                el.addEventListener('dragend', handleDragEnd);
+            });
+        }
+
+        // 初始化可投放区域
+        function initDropZones(elements) {
+            elements.forEach(el => {
+                el.addEventListener('dragover', handleDragOver);
+                el.addEventListener('dragenter', handleDragEnter);
+                el.addEventListener('dragleave', handleDragLeave);
+                el.addEventListener('drop', handleDrop);
+            });
+        }
+
+        function handleDragStart(e) {
+            if (isChecked) return; // 已检查 → 禁止拖动
+            dragTarget = this;
+            setTimeout(() => dragTarget.classList.add('dragging'), 0);
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd() {
+            if (dragTarget) {
+                dragTarget.classList.remove('dragging');
+                dragTarget = null;
+            }
+        }
+
+        function handleDragOver(e) {
+            if (isChecked) return;
+            e.preventDefault();
+        }
+
+        function handleDragEnter() {
+            if (isChecked) return;
+            this.classList.add('highlight');
+        }
+
+        function handleDragLeave() {
+            this.classList.remove('highlight');
+        }
+
+        // 投放：可来回移动
+        function handleDrop(e) {
+            if (isChecked) return;
+            e.preventDefault();
+            this.classList.remove('highlight');
+            if (!dragTarget) return;
+
+            const isSlot = this.hasAttribute('data-category');
+            const isOrigin = this.id === 'cardContainer';
+
+            if (isSlot) {
+                dragTarget.classList.add('slot-card');
+                this.appendChild(dragTarget);
+            }
+            if (isOrigin) {
+                dragTarget.classList.remove('slot-card');
+                dragTarget.style.border = '';
+                this.appendChild(dragTarget);
+            }
+        }
+
+        // 检查答案 → 锁定所有卡片
+        function checkAnswer() {
+            isChecked = true; // 锁定拖拽
+            let allCorrect = true;
+            const slots = document.querySelectorAll('[data-category]');
+
+            slots.forEach(slot => {
+                const cat = slot.dataset.category;
+                const card = slot.querySelector('.resource-card');
+                slot.classList.remove('correct', 'incorrect');
+
+                if (!card || card.dataset.type !== cat) {
+                    slot.classList.add('incorrect');
+                    allCorrect = false;
+                } else {
+                    slot.classList.add('correct');
+                }
+            });
+
+            const tip = document.getElementById('resultTip');
+            if (allCorrect) {
+                tip.textContent = '✅ 全部正确！';
+                tip.style.color = '#22c55e';
+            } else {
+                tip.textContent = '❌ 还有错误哦，请重新调整';
+                tip.style.color = '#ef4444';
+            }
+        }
+
+        // 重置 → 解锁拖拽
+        function resetGame() {
+            isChecked = false; // 重置后恢复可拖动
+            document.querySelectorAll('[data-category]').forEach(slot => {
+                const card = slot.querySelector('.resource-card');
+                if (card) {
+                    card.classList.remove('slot-card');
+                    card.style.border = '';
+                    cardContainer.appendChild(card);
+                }
+                slot.classList.remove('correct', 'incorrect', 'highlight');
+            });
+            document.getElementById('resultTip').textContent = '';
+        }
+    </script>
+</body>
+</html>
