@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "SimSun", sans-serif;
+        }
+
+        body {
+            background: linear-gradient(120deg, #e3f2fd, #c8e1ff);
+            padding: 25px 15px;
+            text-align: center;
+            position: relative;
+        }
+
+        .fullscreen-btn {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            padding: 10px 20px;
+            background: transparent;
+            color: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            z-index: 9999;
+        }
+
+        .fullscreen-btn:hover {
+            background: #0a3d8f;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-size: 24px;
+            color: #0a3d8f;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .page-desc {
+            font-size: 14px;
+            color: #1967d2;
+            margin-bottom: 28px;
+        }
+
+        input {
+            padding: 11px 18px;
+            width: 270px;
+            font-size: 15px;
+            border: 2px solid #1967d2;
+            border-radius: 8px;
+            outline: none;
+            background: #fff;
+            text-align: center;
+        }
+
+        button {
+            padding: 11px 26px;
+            background: #0a3d8f;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            margin-left: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #083073;
+        }
+
+        .certificate {
+            width: 100%;
+            max-width: 520px;
+            margin: 30px auto 0;
+            background: #fff;
+            border: 8px double #0a3d8f;
+            padding: 35px 30px;
+            border-radius: 18px;
+            box-shadow: 0 4px 25px rgba(10, 61, 143, 0.18);
+            display: none;
+            position: relative;
+            background-image: repeating-linear-gradient(45deg, #f7f9fc 0px, #f7f9fc 1px, transparent 1px, transparent 10px);
+        }
+
+        .cert-top-decor {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .decor-line {
+            width: 80px;
+            height: 2px;
+            background-color: #0a3d8f;
+        }
+
+        .decor-wave {
+            font-size: 24px;
+            color: #0a3d8f;
+        }
+
+        .cert-title {
+            font-size: 28px;
+            color: #0a3d8f;
+            margin-bottom: 8px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .cert-eng {
+            font-size: 13px;
+            color: #446cad;
+            letter-spacing: 1px;
+            margin-bottom: 25px;
+        }
+
+        .name-box {
+            font-size: 34px;
+            color: #b81c1c;
+            font-weight: bold;
+            margin: 28px 0;
+            border-bottom: 2px solid #1967d2;
+            display: inline-block;
+            padding: 0 25px 8px;
+            letter-spacing: 3px;
+        }
+
+        .cert-text {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #2c3e50;
+            margin-bottom: 18px;
+        }
+
+        .cert-tag {
+            font-size: 19px;
+            font-weight: bold;
+            color: #0a3d8f;
+            margin: 10px 0 22px;
+        }
+
+        .sign {
+            position: relative;
+            width: 220px;
+            height: 130px;
+            margin: 35px auto 0;
+            text-align: center;
+        }
+
+        .sign-text {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            line-height: 130px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #0a3d8f;
+            z-index: 1;
+        }
+
+        .seal-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            z-index: 10;
+            opacity: 0.58;
+            pointer-events: none;
+        }
+
+        .date {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #506685;
+        }
+
+        .download-btn {
+            margin-top: 22px;
+            background: #2e7d32;
+        }
+
+        .download-btn:hover {
+            background: #1b5e20;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()">全屏</button>
+
+    <div class="container">
+        <h1 class="page-title">海洋资源中心 认证系统</h1>
+        <p class="page-desc">输入姓名，生成并下载海洋资源分析师证书</p>
+
+        <div>
+            <input type="text" id="username" placeholder="请输入你的姓名">
+            <button onclick="createCert()">生成证书</button>
+        </div>
+
+        <div class="certificate" id="cert">
+            <div class="cert-top-decor">
+                <div class="decor-line"></div>
+                <div class="decor-wave">〰️</div>
+                <div class="decor-line"></div>
+            </div>
+
+            <h2 class="cert-title">海洋资源分析师证书</h2>
+            <p class="cert-eng">MARINE RESOURCE ANALYST CERTIFICATE</p>
+
+            <p class="cert-text">兹授予</p>
+            <div class="name-box" id="showName">姓名</div>
+
+            <p class="cert-tag">海洋资源分析师</p>
+
+            <p class="cert-text">
+                特发此证，以资鼓励<br>
+                深耕海洋资源调研，助力海洋可持续发展
+            </p>
+
+            <div class="sign">
+                <div class="sign-text">海洋资源中心</div>
+
+                <div class="seal-box">
+                    <svg width="100" height="100" viewBox="0 0 100 100">
+                        <!-- 外圈红圈 -->
+                        <circle cx="50" cy="50" r="46" fill="none" stroke="#c40808" stroke-width="2.5" />
+                        <!-- 圆弧轨道半径固定29 -->
+                        <defs>
+                            <path id="ringPath" d="M 21 50 A 29 29 0 0 1 79 50" />
+                        </defs>
+                        <!-- 参数：font-size="11" letter-spacing="12px" textLength="100" | 文字改为【海洋资源中心】 -->
+                        <text fill="#c40808" font-size="11" font-family="SimSun, Microsoft YaHei" letter-spacing="12px">
+                            <textPath href="#ringPath" startOffset="0%" textLength="100">海洋资源中心</textPath>
+                        </text>
+                        <!-- 中心五角星 -->
+                        <path d="M50 30 L56.5 44.5 L71 44.5 L59 54 L62.5 68 L50 59.5 L37.5 68 L41 53.5 L29 44.5 L43.5 44.5 Z" fill="#c40808" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="date" id="nowDate"></div>
+        </div>
+
+        <button class="download-btn" id="downloadBtn" style="display:none;" onclick="downloadCert()">下载证书</button>
+    </div>
+
+    <script>
+        function toggleFullScreen() {
+            let doc = document.documentElement;
+            if (!document.fullscreenElement) {
+                doc.requestFullscreen?.() || doc.webkitRequestFullscreen?.() || doc.msRequestFullscreen?.();
+                document.querySelector('.fullscreen-btn').innerText = '退出全屏';
+            } else {
+                doc.exitFullscreen?.() || document.webkitExitFullscreen?.() || document.msRequestFullscreen?.();
+                document.querySelector('.fullscreen-btn').innerText = '全屏';
+            }
+        }
+
+        function createCert() {
+            let name = document.getElementById('username').value.trim();
+            if (!name) {
+                alert('请输入姓名');
+                return;
+            }
+            document.getElementById('showName').innerText = name;
+            document.getElementById('cert').style.display = 'block';
+            document.getElementById('downloadBtn').style.display = 'inline-block';
+            const now = new Date();
+            document.getElementById('nowDate').innerText = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}`;
+        }
+
+        function downloadCert() {
+            html2canvas(document.getElementById('cert'), {
+                useCORS: true,
+                scale: 2
+            }).then(canvas => {
+                const a = document.createElement('a');
+                a.download = "海洋资源分析师证书.png";
+                a.href = canvas.toDataURL('image/png');
+                a.click();
+            });
+        }
+    </script>
+</body>
+</html>
